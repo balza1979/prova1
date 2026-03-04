@@ -1,30 +1,24 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
 <title>ELMI – Errori</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Libreria corretta per leggere Excel -->
-https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
+<!-- Libreria per leggere file Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-  :root {
-    --bg: #d1d5db;
-    --primary: #b91c1c;
-    --border: #9ca3af;
-  }
-
   body {
     margin: 0;
     padding: 0;
-    background: var(--bg);
+    background: #d1d5db; /* grigio */
     font-family: Arial, sans-serif;
   }
 
   header {
-    background: var(--primary);
-    color: #fff;
+    background: #b91c1c; /* rosso */
+    color: white;
     padding: 20px;
     font-size: 28px;
     font-weight: bold;
@@ -32,62 +26,27 @@ https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
   }
 
   .container {
-    max-width: 900px;
-    margin: 24px auto 40px;
-    background: #fff;
-    padding: 24px;
+    max-width: 600px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   }
-
-  .row { margin-top: 20px; }
 
   label {
     font-weight: bold;
     display: block;
-    margin-bottom: 6px;
+    margin-top: 20px;
   }
 
-  select, textarea, input[type="file"] {
+  select, input {
     width: 100%;
     padding: 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-
-  /* Campi B-C-D grandi */
-  textarea.big {
-    height: 260px;
-    resize: vertical;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    font-size: 17px;
-    padding: 12px;
-  }
-
-  .status {
-    margin: 12px 0 0;
-    color: #374151;
-    font-size: 14px;
-  }
-
-  .alert {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #7f1d1d;
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin: 12px 0 0;
-    display: none;
-    white-space: pre-wrap;
-  }
-
-  .helper {
-    font-size: 13px;
-    color: #4b5563;
     margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid #9ca3af;
+    font-size: 16px;
   }
 </style>
 </head>
@@ -97,137 +56,58 @@ https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 <header>ELMI</header>
 
 <div class="container">
+  <label id="labelA">Caricamento...</label>
+  <select id="menu"></select>
 
-  <div id="alert" class="alert"></div>
+  <label id="labelB"></label>
+  <input type="text" id="campoB" readonly>
 
-  <div class="row">
-    <div class="status" id="status">Caricamento di <code>errori.xlsx</code>…</div>
-    <div class="helper">Se il caricamento automatico fallisce, puoi selezionare il file qui sotto.</div>
-    <input type="file" id="fileInput" accept=".xlsx,.xls" />
-  </div>
+  <label id="labelC"></label>
+  <input type="text" id="campoC" readonly>
 
-  <!-- TENDINA -->
-  <div class="row">
-    <label id="labelA">Titolo colonna A</label>
-    <select id="menu">
-      <option value="">— seleziona —</option>
-    </select>
-  </div>
-
-  <!-- CAMPI GRANDI -->
-  <div class="row">
-    <label id="labelB">Titolo colonna B</label>
-    <textarea id="campoB" class="big" readonly></textarea>
-  </div>
-
-  <div class="row">
-    <label id="labelC">Titolo colonna C</label>
-    <textarea id="campoC" class="big" readonly></textarea>
-  </div>
-
-  <div class="row">
-    <label id="labelD">Titolo colonna D</label>
-    <textarea id="campoD" class="big" readonly></textarea>
-  </div>
-
+  <label id="labelD"></label>
+  <input type="text" id="campoD" readonly>
 </div>
 
 <script>
-(function(){
+async function caricaExcel() {
+  const file = await fetch("errori.xlsx");
+  const arrayBuffer = await file.arrayBuffer();
+  const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
-  let righe = [];
+  const sheet = workbook.Sheets["errori"];
+  const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-  const qs = id => document.getElementById(id);
-  const statusEl = qs("status");
-  const alertEl  = qs("alert");
-  const menuEl   = qs("menu");
+  const intestazioni = dati[0];
+  const righe = dati.slice(1);
 
-  function showError(msg, err) {
-    alertEl.style.display = "block";
-    alertEl.textContent = msg + (err ? "\n" + err.message : "");
-    console.error(msg, err);
-  }
+  document.getElementById("labelA").textContent = intestazioni[0];
+  document.getElementById("labelB").textContent = intestazioni[1];
+  document.getElementById("labelC").textContent = intestazioni[2];
+  document.getElementById("labelD").textContent = intestazioni[3];
 
-  function setStatus(msg) { statusEl.textContent = msg; }
+  const menu = document.getElementById("menu");
 
-  function popolaIntestazioni(intestazioni) {
-    qs("labelA").textContent = intestazioni[0];
-    qs("labelB").textContent = intestazioni[1];
-    qs("labelC").textContent = intestazioni[2];
-    qs("labelD").textContent = intestazioni[3];
-  }
-
-  function popolaMenu() {
-    menuEl.innerHTML = '<option value="">— seleziona —</option>';
-    righe.forEach((riga, i) => {
-      if (riga[0]) {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = riga[0];
-        menuEl.appendChild(opt);
-      }
-    });
-  }
-
-  function aggiornaCampi(index) {
-    qs("campoB").value = righe[index][1] || "";
-    qs("campoC").value = righe[index][2] || "";
-    qs("campoD").value = righe[index][3] || "";
-  }
-
-  menuEl.addEventListener("change", () => {
-    if (menuEl.value === "") {
-      qs("campoB").value = "";
-      qs("campoC").value = "";
-      qs("campoD").value = "";
-    } else {
-      aggiornaCampi(Number(menuEl.value));
-    }
+  righe.forEach((riga, index) => {
+    const opt = document.createElement("option");
+    opt.value = index;
+    opt.textContent = riga[0];
+    menu.appendChild(opt);
   });
 
-  function parseWorkbook(wb) {
-    const sheet = wb.Sheets["errori"];
-    if (!sheet) throw new Error("Foglio 'errori' non trovato nel file Excel.");
-
-    const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    const intestazioni = dati[0];
-    righe = dati.slice(1);
-
-    popolaIntestazioni(intestazioni);
-    popolaMenu();
-  }
-
-  async function caricaDaFetch() {
-    setStatus("Caricamento di errori.xlsx…");
-    const res = await fetch("errori.xlsx");
-    if (!res.ok) throw new Error("File non trovato.");
-    const buf = await res.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    parseWorkbook(wb);
-    setStatus("Caricato automaticamente.");
-  }
-
-  qs("fileInput").addEventListener("change", e => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
-      parseWorkbook(wb);
-      setStatus("Caricato da file.");
-    };
-    reader.readAsArrayBuffer(file);
+  menu.addEventListener("change", () => {
+    const r = righe[menu.value];
+    document.getElementById("campoB").value = r[1] || "";
+    document.getElementById("campoC").value = r[2] || "";
+    document.getElementById("campoD").value = r[3] || "";
   });
 
-  (async () => {
-    try { await caricaDaFetch(); }
-    catch(err) {
-      showError("Caricamento automatico fallito. Seleziona il file manualmente.", err);
-      setStatus("In attesa del file manuale…");
-    }
-  })();
+  menu.dispatchEvent(new Event("change"));
+}
 
-})();
+caricaExcel();
 </script>
 
 </body>
 </html>
+
