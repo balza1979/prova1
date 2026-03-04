@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Libreria per leggere file Excel -->
-https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
   body {
@@ -40,32 +40,13 @@ https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js</script>
     margin-top: 20px;
   }
 
-  /* Select classica (una riga), nessuna altezza forzata */
-  select {
+  select, input {
     width: 100%;
     padding: 10px;
     margin-top: 6px;
     border-radius: 6px;
     border: 1px solid #9ca3af;
     font-size: 16px;
-    box-sizing: border-box;
-  }
-
-  /* Textarea grandi con scroll e a capo automatico */
-  textarea {
-    width: 100%;
-    height: 220px;         /* <- cambia qui l’altezza dei campi testo */
-    padding: 10px;
-    margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #9ca3af;
-    font-size: 16px;
-    resize: vertical;      /* permette all’utente di ingrandire/ridurre */
-    overflow-y: auto;
-    white-space: pre-wrap; /* mantiene gli a capo (\n) e va a capo automatico */
-    background: #f9fafb;
-    box-sizing: border-box;
-    line-height: 1.35;
   }
 </style>
 </head>
@@ -79,61 +60,49 @@ https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js</script>
   <select id="menu"></select>
 
   <label id="labelB"></label>
-  <textarea id="campoB" readonly></textarea>
+  <input type="text" id="campoB" readonly>
 
   <label id="labelC"></label>
-  <textarea id="campoC" readonly></textarea>
+  <input type="text" id="campoC" readonly>
 
   <label id="labelD"></label>
-  <textarea id="campoD" readonly></textarea>
+  <input type="text" id="campoD" readonly>
 </div>
 
 <script>
 async function caricaExcel() {
-  // Evita cache ostinate di GitHub Pages
-  const file = await fetch("errori.xlsx", { cache: "no-store" });
+  const file = await fetch("errori.xlsx");
   const arrayBuffer = await file.arrayBuffer();
   const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
   const sheet = workbook.Sheets["errori"];
   const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-  const intestazioni = dati[0] || [];
-  const righe = dati.slice(1); // dati dalla riga 2 in poi
+  const intestazioni = dati[0];
+  const righe = dati.slice(1);
 
-  // Etichette
-  document.getElementById("labelA").textContent = intestazioni[0] || "Selezione";
-  document.getElementById("labelB").textContent = intestazioni[1] || "Campo 1";
-  document.getElementById("labelC").textContent = intestazioni[2] || "Campo 2";
-  document.getElementById("labelD").textContent = intestazioni[3] || "Campo 3";
+  document.getElementById("labelA").textContent = intestazioni[0];
+  document.getElementById("labelB").textContent = intestazioni[1];
+  document.getElementById("labelC").textContent = intestazioni[2];
+  document.getElementById("labelD").textContent = intestazioni[3];
 
-  // Popola la select
   const menu = document.getElementById("menu");
-  menu.innerHTML = "";
 
   righe.forEach((riga, index) => {
-    // sicurezza: salta righe completamente vuote o senza colonna A
-    if (!riga || riga[0] === undefined || riga[0] === null || String(riga[0]).trim() === "") return;
-
     const opt = document.createElement("option");
-    opt.value = index;            // indice della riga in "righe"
-    opt.textContent = riga[0];    // descrizione in colonna A
+    opt.value = index;
+    opt.textContent = riga[0];
     menu.appendChild(opt);
   });
 
-  // Cambio selezione -> aggiorna i 3 campi
   menu.addEventListener("change", () => {
-    const r = righe[menu.value] || [];
+    const r = righe[menu.value];
     document.getElementById("campoB").value = r[1] || "";
     document.getElementById("campoC").value = r[2] || "";
     document.getElementById("campoD").value = r[3] || "";
   });
 
-  // Se ci sono opzioni, seleziona la prima e popola subito
-  if (menu.options.length > 0) {
-    menu.selectedIndex = 0;
-    menu.dispatchEvent(new Event("change"));
-  }
+  menu.dispatchEvent(new Event("change"));
 }
 
 caricaExcel();
@@ -141,3 +110,4 @@ caricaExcel();
 
 </body>
 </html>
+
