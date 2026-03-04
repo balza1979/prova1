@@ -2,112 +2,111 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>ELMI – Errori</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- Libreria per leggere file Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<title>Visualizzatore Errori</title>
 
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: #d1d5db; /* grigio */
-    font-family: Arial, sans-serif;
-  }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 30px;
+    }
 
-  header {
-    background: #b91c1c; /* rosso */
-    color: white;
-    padding: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    text-align: center;
-  }
+    label {
+        font-weight: bold;
+        display: block;
+        margin-top: 20px;
+    }
 
-  .container {
-    max-width: 600px;
-    margin: 40px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  }
+    select, textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        font-size: 16px;
+    }
 
-  label {
-    font-weight: bold;
-    display: block;
-    margin-top: 20px;
-  }
-
-  select, input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #9ca3af;
-    font-size: 16px;
-  }
+    textarea {
+        height: 150px;
+        resize: vertical;
+        overflow-y: scroll;
+    }
 </style>
 </head>
 
 <body>
 
-<header>ELMI</header>
+<h2>Visualizzatore Errori da Excel</h2>
 
-<div class="container">
-  <label id="labelA">Caricamento...</label>
-  <select id="menu"></select>
+<!-- Caricamento file Excel -->
+<label>Carica il file errori.xlsx:</label>
+<input type="file" id="fileInput" accept=".xlsx">
 
-  <label id="labelB"></label>
-  <input type="text" id="campoB" readonly>
+<!-- Campo 1 con tendina -->
+<label id="labelA"></label>
+<select id="selectA"></select>
 
-  <label id="labelC"></label>
-  <input type="text" id="campoC" readonly>
+<!-- Campi testo -->
+<label id="labelB"></label>
+<textarea id="textB" readonly></textarea>
 
-  <label id="labelD"></label>
-  <input type="text" id="campoD" readonly>
-</div>
+<label id="labelC"></label>
+<textarea id="textC" readonly></textarea>
+
+<label id="labelD"></label>
+<textarea id="textD" readonly></textarea>
+
+https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js
 
 <script>
-async function caricaExcel() {
-  const file = await fetch("errori.xlsx");
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: "array" });
+let dati = [];  // conterrà le righe del foglio Excel
 
-  const sheet = workbook.Sheets["errori"];
-  const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
 
-  const intestazioni = dati[0];
-  const righe = dati.slice(1);
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const sheet = workbook.Sheets["errori"];
+        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-  document.getElementById("labelA").textContent = intestazioni[0];
-  document.getElementById("labelB").textContent = intestazioni[1];
-  document.getElementById("labelC").textContent = intestazioni[2];
-  document.getElementById("labelD").textContent = intestazioni[3];
+        // Riga 1: titoli
+        document.getElementById("labelA").innerText = json[0][0];
+        document.getElementById("labelB").innerText = json[0][1];
+        document.getElementById("labelC").innerText = json[0][2];
+        document.getElementById("labelD").innerText = json[0][3];
 
-  const menu = document.getElementById("menu");
+        // Righe successive: dati
+        dati = json.slice(1);
 
-  righe.forEach((riga, index) => {
-    const opt = document.createElement("option");
-    opt.value = index;
-    opt.textContent = riga[0];
-    menu.appendChild(opt);
-  });
+        // Popola la tendina con colonna A
+        const select = document.getElementById("selectA");
+        select.innerHTML = "<option value=''>-- seleziona --</option>";
 
-  menu.addEventListener("change", () => {
-    const r = righe[menu.value];
-    document.getElementById("campoB").value = r[1] || "";
-    document.getElementById("campoC").value = r[2] || "";
-    document.getElementById("campoD").value = r[3] || "";
-  });
+        dati.forEach(riga => {
+            if (riga[0]) {
+                let opt = document.createElement("option");
+                opt.value = riga[0];
+                opt.textContent = riga[0];
+                select.appendChild(opt);
+            }
+        });
+    };
 
-  menu.dispatchEvent(new Event("change"));
-}
+    reader.readAsArrayBuffer(file);
+});
 
-caricaExcel();
+// Quando selezioni una voce mostra B, C, D
+document.getElementById("selectA").addEventListener("change", function() {
+    const valore = this.value;
+    const riga = dati.find(r => r[0] === valore);
+
+    if (riga) {
+        document.getElementById("textB").value = riga[1] || "";
+        document.getElementById("textC").value = riga[2] || "";
+        document.getElementById("textD").value = riga[3] || "";
+    }
+});
 </script>
 
 </body>
 </html>
-
