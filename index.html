@@ -1,127 +1,53 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<title>ELMI – Errori</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- Libreria per leggere file Excel -->
-https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
-
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: #d1d5db; /* grigio */
-    font-family: Arial, sans-serif;
-  }
-
-  header {
-    background: #b91c1c; /* rosso */
-    color: white;
-    padding: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    text-align: center;
-  }
-
-  .container {
-    max-width: 600px;
-    margin: 40px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  }
-
-  label {
-    font-weight: bold;
-    display: block;
-    margin-top: 20px;
-  }
-
-  select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #9ca3af;
-    font-size: 16px;
-  }
-
-  /* Nuovi textarea */
-  textarea {
-    width: 100%;
-    height: 150px;         /* puoi cambiarla */
-    padding: 10px;
-    margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #9ca3af;
-    font-size: 16px;
-    resize: vertical;      /* l’utente può ingrandire */
-    white-space: pre-wrap; /* mantiene gli \n e va a capo */
-    overflow-y: auto;
-    background: #f9fafb;
-  }
-</style>
-</head>
-
-<body>
-
-<header>ELMI</header>
-
-<div class="container">
-  <label id="labelA">Caricamento...</label>
-  <select id="menu"></select>
-
-  <label id="labelB"></label>
-  <textarea id="campoB" readonly></textarea>
-
-  <label id="labelC"></label>
-  <textarea id="campoC" readonly></textarea>
-
-  <label id="labelD"></label>
-  <textarea id="campoD" readonly></textarea>
-</div>
-
 <script>
 async function caricaExcel() {
-  const file = await fetch("errori.xlsx");
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: "array" });
+  try {
+    const file = await fetch("errori.xlsx", { cache: "no-store" });
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
-  const sheet = workbook.Sheets["errori"];
-  const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const sheet = workbook.Sheets["errori"];
+    const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-  const intestazioni = dati[0];
-  const righe = dati.slice(1);
+    // PRIMA RIGA = intestazioni vere
+    const intestazioni = dati[0];
 
-  document.getElementById("labelA").textContent = intestazioni[0];
-  document.getElementById("labelB").textContent = intestazioni[1];
-  document.getElementById("labelC").textContent = intestazioni[2];
-  document.getElementById("labelD").textContent = intestazioni[3];
+    // Controllo sicurezza (se mancano colonne)
+    document.getElementById("labelA").textContent = intestazioni[0] || "Selezione";
+    document.getElementById("labelB").textContent = intestazioni[1] || "Campo 1";
+    document.getElementById("labelC").textContent = intestazioni[2] || "Campo 2";
+    document.getElementById("labelD").textContent = intestazioni[3] || "Campo 3";
 
-  const menu = document.getElementById("menu");
+    // Righe successive = dati
+    const righe = dati.slice(1);
 
-  righe.forEach((riga, index) => {
-    const opt = document.createElement("option");
-    opt.value = index;
-    opt.textContent = riga[0];
-    menu.appendChild(opt);
-  });
+    // MENU
+    const menu = document.getElementById("menu");
+    menu.innerHTML = "";
 
-  menu.addEventListener("change", () => {
-    const r = righe[menu.value];
-    document.getElementById("campoB").value = r[1] || "";
-    document.getElementById("campoC").value = r[2] || "";
-    document.getElementById("campoD").value = r[3] || "";
-  });
+    righe.forEach((riga, index) => {
+      if (!riga || !riga[0]) return; // salta righe vuote
 
-  menu.dispatchEvent(new Event("change"));
+      const opt = document.createElement("option");
+      opt.value = index;
+      opt.textContent = riga[0];
+      menu.appendChild(opt);
+    });
+
+    // Quando seleziono una voce riempio i campi
+    menu.addEventListener("change", () => {
+      const r = righe[menu.value] || [];
+      document.getElementById("campoB").value = r[1] || "";
+      document.getElementById("campoC").value = r[2] || "";
+      document.getElementById("campoD").value = r[3] || "";
+    });
+
+    // Innesco iniziale
+    if (righe.length > 0) menu.dispatchEvent(new Event("change"));
+
+  } catch (err) {
+    alert("Errore caricamento Excel: " + err);
+  }
 }
-
 caricaExcel();
 </script>
-
-</body>
-</html>
+``
