@@ -5,8 +5,8 @@
 <title>ELMI – Errori</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Libreria per leggere file Excel (MANCAVA!) -->
-<script srcjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
+<!-- Libreria per leggere file Excel (PRIMA MANCAVA!!!) -->
+https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js</script>
 
 <style>
   body {
@@ -104,7 +104,8 @@ async function caricaExcel() {
   const menu = document.getElementById("menu");
 
   righe.forEach((riga, index) => {
-    if (!riga || !riga[0]) return;
+    // evita righe vuote
+    if (!riga || riga[0] === undefined || riga[0] === null || String(riga[0]).trim() === "") return;
     const opt = document.createElement("option");
     opt.value = index;
     opt.textContent = riga[0];
