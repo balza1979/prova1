@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Libreria per leggere file Excel -->
-https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
+https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js</script>
 
 <style>
   body {
@@ -26,7 +26,7 @@ https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
   }
 
   .container {
-    max-width: 600px;
+    max-width: 800px; /* se vuoi lascia 600px */
     margin: 40px auto;
     background: white;
     padding: 30px;
@@ -40,29 +40,31 @@ https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
     margin-top: 20px;
   }
 
-  select {
+  /* Stile base per controlli */
+  select, textarea {
     width: 100%;
     padding: 10px;
     margin-top: 6px;
     border-radius: 6px;
     border: 1px solid #9ca3af;
     font-size: 16px;
+    box-sizing: border-box;
   }
 
-  /* 📌 NUOVE IMPOSTAZIONI textarea */
-  textarea {
-    width: 100%;
-    height: 200px;        /* 🔥 altezza regolabile */
-    padding: 10px;
-    margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #9ca3af;
-    font-size: 16px;
-    resize: vertical;     /* permette di ingrandire */
-    overflow-y: auto;     /* scrollbar verticale */
-    white-space: pre-wrap;/* mantiene a capo e formattazione */
+  /* Primo campo: SELECT a 3 righe con scroll */
+  #menu {
+    /* 'size' nel markup gestisce l'altezza a righe; qui solo rifiniture */
+    overflow-y: auto;
+  }
+
+  /* Altri 3 campi: TEXTAREA grandi con scroll & a capo */
+  #campoB, #campoC, #campoD {
+    height: 220px;       /* <-- regola l'altezza che preferisci */
+    resize: vertical;    /* l’utente può ingrandire */
+    overflow-y: auto;
+    white-space: pre-wrap; /* mantiene \n e va a capo */
     background: #f9fafb;
-    box-sizing: border-box;
+    line-height: 1.35;
   }
 </style>
 </head>
@@ -73,7 +75,8 @@ https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
 
 <div class="container">
   <label id="labelA">Caricamento...</label>
-  <select id="menu"></select>
+  <!-- 👇 Mostra 3 righe visibili (lista), con scroll se molte voci -->
+  <select id="menu" size="3"></select>
 
   <label id="labelB"></label>
   <textarea id="campoB" readonly></textarea>
@@ -103,11 +106,14 @@ async function caricaExcel() {
   document.getElementById("labelD").textContent = intestazioni[3];
 
   const menu = document.getElementById("menu");
+  menu.innerHTML = "";
 
   righe.forEach((riga, index) => {
+    if (!riga || riga[0] === undefined || riga[0] === null || String(riga[0]).trim() === "") return;
     const opt = document.createElement("option");
     opt.value = index;
-    opt.textContent = riga[0];
+    opt.textContent = riga[0];  // le <option> non vanno a capo: è un limite HTML
+    opt.title = riga[0];        // tooltip per leggere il testo completo al passaggio mouse
     menu.appendChild(opt);
   });
 
@@ -118,7 +124,11 @@ async function caricaExcel() {
     document.getElementById("campoD").value = r[3] || "";
   });
 
-  menu.dispatchEvent(new Event("change"));
+  // Se ci sono voci, seleziona la prima e popola i campi
+  if (menu.options.length > 0) {
+    menu.selectedIndex = 0;
+    menu.dispatchEvent(new Event("change"));
+  }
 }
 
 caricaExcel();
