@@ -40,13 +40,24 @@
     margin-top: 20px;
   }
 
-  select, input {
+  select {
     width: 100%;
     padding: 10px;
     margin-top: 6px;
     border-radius: 6px;
     border: 1px solid #9ca3af;
     font-size: 16px;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid #9ca3af;
+    font-size: 16px;
+    resize: vertical; /* permette di allargare se serve */
+    min-height: 90px; /* altezza minima */
   }
 </style>
 </head>
@@ -60,13 +71,13 @@
   <select id="menu"></select>
 
   <label id="labelB"></label>
-  <input type="text" id="campoB" readonly>
+  <textarea id="campoB" readonly></textarea>
 
   <label id="labelC"></label>
-  <input type="text" id="campoC" readonly>
+  <textarea id="campoC" readonly></textarea>
 
   <label id="labelD"></label>
-  <input type="text" id="campoD" readonly>
+  <textarea id="campoD" readonly></textarea>
 </div>
 
 <script>
@@ -110,4 +121,3 @@ caricaExcel();
 
 </body>
 </html>
-
