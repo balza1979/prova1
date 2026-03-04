@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Libreria per leggere file Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax18.5/xlsx.full.min.js</script>
+https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
 
 <style>
   body {
@@ -26,7 +26,7 @@
   }
 
   .container {
-    max-width: 780px;               /* più largo per dare respiro */
+    max-width: 600px;
     margin: 40px auto;
     background: white;
     padding: 30px;
@@ -40,52 +40,28 @@
     margin-top: 20px;
   }
 
-  select, textarea {
+  select {
     width: 100%;
     padding: 10px;
     margin-top: 6px;
     border-radius: 6px;
     border: 1px solid #9ca3af;
     font-size: 16px;
-    box-sizing: border-box;
   }
 
-  /* Campi di testo lunghi con scrollbar */
-  .campo-lungo {
-    height: 160px;                  /* regola altezza a piacere */
-    resize: vertical;               /* consenti all’utente di allargare */
-    overflow: auto;                 /* mostra barre scorrimento se serve */
-    white-space: pre-wrap;          /* rispetta a capo e va a capo */
-    line-height: 1.35;
-    background-color: #f9fafb;
-  }
-
-  .row {
-    display: grid;
-    grid-template-columns: 1fr auto;   /* campo + pulsante "Apri" (opzionale) */
-    gap: 10px;
-    align-items: start;
-  }
-
-  .actions {
-    display: flex;
-    gap: 6px;
+  /* Nuovi textarea */
+  textarea {
+    width: 100%;
+    height: 150px;         /* puoi cambiarla */
+    padding: 10px;
     margin-top: 6px;
-  }
-
-  .btn {
-    background: #b91c1c;
-    color: #fff;
-    border: none;
     border-radius: 6px;
-    padding: 10px 12px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-
-  .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    border: 1px solid #9ca3af;
+    font-size: 16px;
+    resize: vertical;      /* l’utente può ingrandire */
+    white-space: pre-wrap; /* mantiene gli \n e va a capo */
+    overflow-y: auto;
+    background: #f9fafb;
   }
 </style>
 </head>
@@ -99,84 +75,52 @@
   <select id="menu"></select>
 
   <label id="labelB"></label>
-  <div class="row">
-    <textarea id="campoB" class="campo-lungo" readonly></textarea>
-    <button id="openB" class="btn" title="Apri pagina dedicata">Apri</button>
-  </div>
+  <textarea id="campoB" readonly></textarea>
 
   <label id="labelC"></label>
-  <div class="row">
-    <textarea id="campoC" class="campo-lungo" readonly></textarea>
-    <button id="openC" class="btn" title="Apri pagina dedicata">Apri</button>
-  </div>
+  <textarea id="campoC" readonly></textarea>
 
   <label id="labelD"></label>
-  <div class="row">
-    <textarea id="campoD" class="campo-lungo" readonly></textarea>
-    <button id="openD" class="btn" title="Apri pagina dedicata">Apri</button>
-  </div>
+  <textarea id="campoD" readonly></textarea>
 </div>
 
 <script>
-(async function caricaExcel() {
-  try {
-    const res = await fetch("errori.xlsx", { cache: "no-store" });
-    if (!res.ok) throw new Error("Impossibile scaricare errori.xlsx");
-    const arrayBuffer = await res.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+async function caricaExcel() {
+  const file = await fetch("errori.xlsx");
+  const arrayBuffer = await file.arrayBuffer();
+  const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
-    const sheet = workbook.Sheets["errori"];
-    if (!sheet) throw new Error("Foglio 'errori' non trovato nel file Excel.");
-    const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const sheet = workbook.Sheets["errori"];
+  const dati = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    if (!dati || dati.length < 2) throw new Error("Nessun dato trovato nel foglio 'errori'.");
+  const intestazioni = dati[0];
+  const righe = dati.slice(1);
 
-    const intestazioni = dati[0];
-    const righe = dati.slice(1);
+  document.getElementById("labelA").textContent = intestazioni[0];
+  document.getElementById("labelB").textContent = intestazioni[1];
+  document.getElementById("labelC").textContent = intestazioni[2];
+  document.getElementById("labelD").textContent = intestazioni[3];
 
-    document.getElementById("labelA").textContent = intestazioni[0] ?? "Selezione";
-    document.getElementById("labelB").textContent = intestazioni[1] ?? "Campo B";
-    document.getElementById("labelC").textContent = intestazioni[2] ?? "Campo C";
-    document.getElementById("labelD").textContent = intestazioni[3] ?? "Campo D";
+  const menu = document.getElementById("menu");
 
-    const menu = document.getElementById("menu");
-    righe.forEach((riga, index) => {
-      const opt = document.createElement("option");
-      opt.value = index;
-      opt.textContent = riga[0] ?? `(riga ${index + 2})`;
-      menu.appendChild(opt);
-    });
+  righe.forEach((riga, index) => {
+    const opt = document.createElement("option");
+    opt.value = index;
+    opt.textContent = riga[0];
+    menu.appendChild(opt);
+  });
 
-    function aggiornaCampi() {
-      const r = righe[menu.value] || [];
-      document.getElementById("campoB").value = r[1] || "";
-      document.getElementById("campoC").value = r[2] || "";
-      document.getElementById("campoD").value = r[3] || "";
+  menu.addEventListener("change", () => {
+    const r = righe[menu.value];
+    document.getElementById("campoB").value = r[1] || "";
+    document.getElementById("campoC").value = r[2] || "";
+    document.getElementById("campoD").value = r[3] || "";
+  });
 
-      // Abilita/disabilita pulsanti Apri
-      document.getElementById("openB").disabled = !(r[1] && String(r[1]).trim().length);
-      document.getElementById("openC").disabled = !(r[2] && String(r[2]).trim().length);
-      document.getElementById("openD").disabled = !(r[3] && String(r[3]).trim().length);
-    }
+  menu.dispatchEvent(new Event("change"));
+}
 
-    menu.addEventListener("change", aggiornaCampi);
-    aggiornaCampi();
-
-    // Pulsanti "Apri" → vanno alla pagina dedicata (soluzione B)
-    document.getElementById("openB").addEventListener("click", () => {
-      window.location.href = `pieno.html?idx=${encodeURIComponent(menu.value)}&col=1`;
-    });
-    document.getElementById("openC").addEventListener("click", () => {
-      window.location.href = `pieno.html?idx=${encodeURIComponent(menu.value)}&col=2`;
-    });
-    document.getElementById("openD").addEventListener("click", () => {
-      window.location.href = `pieno.html?idx=${encodeURIComponent(menu.value)}&col=3`;
-    });
-  } catch (err) {
-    alert(err.message || "Errore durante il caricamento dei dati.");
-    console.error(err);
-  }
-})();
+caricaExcel();
 </script>
 
 </body>
