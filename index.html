@@ -48,15 +48,16 @@
     text-align: center;
   }
 
-  .container {
+.container {
     max-width: 600px;
     margin: 40px auto;
-    background: rgba(255, 255, 255, 0); /* completamente trasparente */
+    background-color: transparent !important; /* forza la trasparenza */
     padding: 30px;
     border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.6); /* bordo chiaro semi-trasparente */
-    box-shadow: none; /* rimosso per non creare blocchi opachi */
-  }
+    border: 2px solid rgba(255, 255, 255, 0.6); /* bordo leggero */
+    box-shadow: none !important; /* rimuove ombre bianche */
+    backdrop-filter: none; /* nessun effetto vetro */
+}
 
   label {
     font-weight: bold;
@@ -145,4 +146,5 @@ caricaExcel();
 
 </body>
 </html>
+
 
