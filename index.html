@@ -12,9 +12,13 @@
   body {
     margin: 0;
     padding: 0;
-    background: #d1d5db; /* grigio */
+    background-image: url('sfondo-elmi-verticale.jpg'); /* stesso sfondo dell'altra pagina */
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
     font-family: Arial, sans-serif;
   }
+
 .home-button {
     position: fixed;
     font-size: 30px;
@@ -75,8 +79,8 @@
     border-radius: 6px;
     border: 1px solid #9ca3af;
     font-size: 16px;
-    resize: vertical; /* permette di allargare se serve */
-    min-height: 90px; /* altezza minima */
+    resize: vertical;
+    min-height: 90px;
   }
 </style>
 </head>
@@ -128,20 +132,4 @@ async function caricaExcel() {
   menu.addEventListener("change", () => {
     const r = righe[menu.value];
     document.getElementById("campoB").value = r[1] || "";
-    document.getElementById("campoC").value = r[2] || "";
-    document.getElementById("campoD").value = r[3] || "";
-  });
-
-  menu.dispatchEvent(new Event("change"));
-}
-
-caricaExcel();
-</script>
-
-</body>
-</html>
-
-
-
-
-
+    document
