@@ -55,8 +55,6 @@
     padding: 30px;
     border-radius: 12px;
     border: 2px solid rgba(255, 255, 255, 0.6);
-    box-shadow: none !important;
-    backdrop-filter: none;
   }
 
   label {
@@ -87,20 +85,19 @@
     min-height: 90px;
   }
 
-  /* Contenitore PDF */
+  /* IMMAGINE */
   .pdf-container {
     max-width: 900px;
     margin: 40px auto;
     padding: 10px;
     background: rgba(255,255,255,0.1);
     border-radius: 12px;
+    text-align: center;
   }
 
-  .pdf-container iframe {
+  .pdf-image {
     width: 100%;
-    height: 700px;
     border-radius: 10px;
-    border: none;
   }
 </style>
 </head>
@@ -125,9 +122,9 @@
   <textarea id="campoD" readonly></textarea>
 </div>
 
-<!-- ✅ PDF qui sotto -->
+<!-- ✅ IMMAGINE sotto -->
 <div class="pdf-container">
-  <iframe src="led_gialli.pdf"></iframe>
+  <img src="led_gialli.jpg" alt="Led gialli" class="pdf-image">
 </div>
 
 <script>
